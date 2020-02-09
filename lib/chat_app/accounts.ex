@@ -6,7 +6,7 @@ defmodule ChatApp.Accounts do
     user = Repo.get_by(User, email: email)
 
     cond do
-      user && user.password_hash == password ->
+      user && Bcrypt.check_pass(password, user.password_hash) ->
         {:ok, user}
 
       true ->
@@ -23,5 +23,9 @@ defmodule ChatApp.Accounts do
 
   def sign_out(conn) do
     Plug.Conn.configure_session(conn, drop: true)
+  end
+
+  def register(params) do
+    User.registration_changeset(%User{}, params) |> Repo.insert()
   end
 end
