@@ -20,4 +20,8 @@ defmodule ChatApp.Accounts do
     user_id = Plug.Conn.get_session(conn, :current_user_id)
     if user_id, do: Repo.get(User, user_id)
   end
+
+  def sign_out(conn) do
+    Plug.Conn.configure_session(conn, drop: true)
+  end
 end

@@ -21,4 +21,10 @@ defmodule ChatAppWeb.SessionController do
         |> render("new.html")
     end
   end
+
+  def delete(conn, _params) do
+    conn
+    |> Accounts.sign_out()
+    |> redirect(to: Routes.room_path(conn, :index))
+  end
 end

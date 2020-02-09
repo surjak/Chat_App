@@ -25,6 +25,8 @@ Signed in as: <strong >
 </strong>
 </nav>
 
+<%= link "Sign Out", to: Routes.session_path(@conn, :delete), method: :delete, class: "btn btn-primary" %>
+
 <% end %>
   </div>
 
