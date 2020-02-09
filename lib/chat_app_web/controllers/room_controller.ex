@@ -4,6 +4,8 @@ defmodule ChatAppWeb.RoomController do
   alias ChatApp.Talk.Room
   alias ChatApp.Talk
 
+  plug :auth_user when action not in [:index]
+
   def index(conn, _params) do
     rooms = Talk.list_rooms()
     render(conn, "index.html", rooms: rooms)
@@ -56,5 +58,16 @@ defmodule ChatAppWeb.RoomController do
     {:ok, _room} = Talk.delete_room(room)
 
     conn |> put_flash(:info, "Room Deleted") |> redirect(to: Routes.room_path(conn, :index))
+  end
+
+  defp auth_user(conn, _params) do
+    if conn.assigns.signed_in? do
+      conn
+    else
+      conn
+      |> put_flash(:error, "You need to be signed in")
+      |> redirect(to: Routes.session_path(conn, :new))
+      |> halt()
+    end
   end
 end
