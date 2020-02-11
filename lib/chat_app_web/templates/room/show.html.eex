@@ -22,3 +22,5 @@
 
 
 </form>
+
+<script>window.roomId = "<%= @room.id %>"</script>
