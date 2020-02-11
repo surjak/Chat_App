@@ -15,6 +15,9 @@ let socket = new Socket("/socket", { params: { token: window.userToken } });
 let roomId = window.roomId;
 
 if (roomId) {
+  const timeout = 3000;
+  let typingTimer;
+  let userTyping = false;
   socket.connect();
 
   let channel = socket.channel(`room:${roomId}`, {});
@@ -60,12 +63,37 @@ if (roomId) {
     input.value = "";
   });
 
+  document.querySelector("#message-body").addEventListener("keydown", () => {
+    userStartsTyping();
+    clearTimeout(typingTimer);
+  });
+  document.querySelector("#message-body").addEventListener("keyup", () => {
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(userStopTyping, timeout);
+  });
+
+  const userStartsTyping = () => {
+    if (userTyping) return;
+    userTyping = true;
+    channel.push("user:typing", { typing: true });
+  };
+
+  const userStopTyping = () => {
+    clearTimeout(typingTimer);
+    userTyping = false;
+    channel.push("user:typing", { typing: false });
+  };
+
   const displayUsers = presences => {
     let usersOnline = Presence.list(
       presences,
       (_id, { metas: [user, ...rest] }) => {
+        let typingTemplate = "";
+        if (user.typing) {
+          typingTemplate = "<i>(Typing...)</i>";
+        }
         return `
-    <div id="user-${user.user_id}> <strong class="text-secondary">${user.username}</strong></div>
+    <div id="user-${user.user_id}> <strong class="text-secondary">${user.username}</strong> ${typingTemplate}</div>
     `;
       }
     ).join("");

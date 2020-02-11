@@ -4,6 +4,8 @@ defmodule ChatAppWeb.RoomChannel do
   alias ChatApp.Repo
   alias ChatApp.Accounts.User
   alias ChatAppWeb.Presence
+  alias ChatApp.Talk.Message
+  alias ChatApp.Talk
 
   def join("room:" <> room_id, _params, socket) do
     send(self(), :after_join)
@@ -12,10 +14,31 @@ defmodule ChatAppWeb.RoomChannel do
   end
 
   def handle_in("message:add", %{"message" => body}, socket) do
-    room_id = socket.assigns[:room_id]
+    room = Talk.get_room!(socket.assigns[:room_id])
     user = get_user(socket)
-    message = %{body: body, user: %{username: user.username}}
-    broadcast!(socket, "room:#{room_id}:new_message", message)
+
+    case Talk.create_message(user, room, %{body: body}) do
+      {:ok, message} ->
+        message = Repo.preload(message, :user)
+        message_template = %{body: message.body, user: %{username: message.user.username}}
+        broadcast!(socket, "room:#{message.room_id}:new_message", message_template)
+        {:reply, :ok, socket}
+
+      {:error, _} ->
+        {:reply, :error, socket}
+    end
+  end
+
+  def handle_in("user:typing", %{"typing" => typing}, socket) do
+    user = get_user(socket)
+
+    {:ok, _} =
+      Presence.update(socket, "user:#{user.id}", %{
+        typing: typing,
+        user_id: user.id,
+        username: user.username
+      })
+
     {:reply, :ok, socket}
   end
 

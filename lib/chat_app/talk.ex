@@ -1,6 +1,14 @@
 defmodule ChatApp.Talk do
   alias ChatApp.Repo
   alias ChatApp.Talk.Room
+  alias ChatApp.Talk.Message
+
+  def create_message(user, room, attrs \\ %{}) do
+    user
+    |> Ecto.build_assoc(:messages, room_id: room.id)
+    |> Message.changeset(attrs)
+    |> Repo.insert()
+  end
 
   def list_rooms do
     Repo.all(Room)
