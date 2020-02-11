@@ -37,5 +37,10 @@ npm-debug.log
 z.html
 
 /config/
-/assets/
+/assets/static/
+/assets/vendor/
+/assets/.babelrc
+/assets/package.json
+/assets/package-lock.json
+
 /.elixir_ls/
