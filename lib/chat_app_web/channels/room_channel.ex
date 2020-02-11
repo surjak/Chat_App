@@ -10,7 +10,7 @@ defmodule ChatAppWeb.RoomChannel do
   def join("room:" <> room_id, _params, socket) do
     send(self(), :after_join)
 
-    {:ok, %{channel: "room:#{room_id}"}, assign(socket, :room_id, room_id)}
+    {:ok, %{messages: Talk.list_messages(room_id)}, assign(socket, :room_id, room_id)}
   end
 
   def handle_in("message:add", %{"message" => body}, socket) do
