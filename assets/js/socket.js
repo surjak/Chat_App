@@ -6,7 +6,9 @@
 //
 // Pass the token on params as below. Or remove it
 // from the params if you are not using authentication.
-import { Socket } from "phoenix";
+import { Socket, Presence } from "phoenix";
+
+let presences = {};
 
 let socket = new Socket("/socket", { params: { token: window.userToken } });
 
@@ -31,6 +33,18 @@ if (roomId) {
     displayMessage(message);
   });
 
+  channel.on("presence_state", state => {
+    presences = Presence.syncState(presences, state);
+    console.log(presences);
+    displayUsers(presences);
+  });
+
+  channel.on("presence_diff", diff => {
+    presences = Presence.syncDiff(presences, diff);
+    console.log(presences);
+    displayUsers(presences);
+  });
+
   const displayMessage = message => {
     let template = ` 
   <li class="list-group-item my-0" ><strong>${message.user.username}</strong>:   ${message.body} </li>
@@ -45,6 +59,18 @@ if (roomId) {
     channel.push("message:add", { message: input.value });
     input.value = "";
   });
+
+  const displayUsers = presences => {
+    let usersOnline = Presence.list(
+      presences,
+      (_id, { metas: [user, ...rest] }) => {
+        return `
+    <div id="user-${user.user_id}> <strong class="text-secondary">${user.username}</strong></div>
+    `;
+      }
+    ).join("");
+    document.querySelector("#users-online").innerHTML = usersOnline;
+  };
 }
 
 // Now that you are connected, you can join channels with a topic:
